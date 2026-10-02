@@ -213,3 +213,41 @@ window.addEventListener('offline', isOnline );
 
 isOnline();
 
+// Enviar un nuevo mensaje por POST (equivale a la petición de Postman)
+function enviarNuevoMensaje( user, mensaje ) {
+
+    if ( !user || !mensaje ) {
+        console.warn('enviarNuevoMensaje: user y mensaje son obligatorios');
+        return Promise.resolve({ ok: false });
+    }
+
+    var data = {
+        user: user,
+        mensaje: mensaje
+    };
+
+    return fetch('api', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify( data )
+    })
+    .then( res => res.json() )
+    .then( res => {
+
+        console.log( 'enviarNuevoMensaje:', res );
+
+        if ( res.ok ) {
+            // Con el SW la respuesta es { ok: true, offline: true } y no trae
+            // el mensaje, así que se pinta con los datos enviados.
+            // Si el SW no interviene, el servidor sí devuelve res.mensaje.
+            var m = res.mensaje || data;
+            crearMensajeHTML( m.mensaje, m.user );
+        }
+
+        return res;
+    })
+    .catch( err => console.log( 'enviarNuevoMensaje error:', err ));
+
+}   
