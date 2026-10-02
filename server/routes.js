@@ -6,12 +6,22 @@ var router = express.Router();
 const mensajes = [
 
   {
-    _id: 'XXX',
+    _id: '1',
     user: 'spiderman',
     mensaje: 'Hola Mundo'
   }
 
 ];
+
+function getNextId(){
+  if(mensajes.length === 0) return '1';
+  const ids = mensajes 
+  .map(m => parseInt(m._id, 10))
+  .filter(id => !isNaN(id));
+  const maxId = ids.length > 0 ? Math.max(...ids) : 0;
+  return String(maxId + 1);
+}
+
 
 
 // Get mensajes
