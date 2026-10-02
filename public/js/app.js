@@ -157,9 +157,6 @@ postBtn.on('click', function() {
     .then( res => res.json() )
     .then( res => console.log( 'app.js', res ))
     .catch( err => console.log( 'app.js error:', err ));
-
-
-
     crearMensajeHTML( mensaje, usuario );
 
 });
@@ -182,8 +179,9 @@ function getMensajes() {
 
 
 }
-
 getMensajes();
+
+
 
 
 
