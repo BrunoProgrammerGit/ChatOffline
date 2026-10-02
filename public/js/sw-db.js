@@ -6,14 +6,17 @@ function guardarMensaje( mensaje ) {
 
     mensaje._id = new Date().toISOString();
 
-    return db.put( mensaje ).then( () => {
+    return db.put( mensaje )
+    .then(()=> {
 
         self.registration.sync.register('nuevo-post');
 
         const newResp = { ok: true, offline: true };
-
+        throw new Error("Algo salió mal");
         return new Response( JSON.stringify(newResp) );
 
+    }).catch(err=>{
+        alert('sw-db.js no se pudo guardar mensaje ${mensaje._id}');
     });
 
 }
