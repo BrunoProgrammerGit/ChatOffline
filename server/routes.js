@@ -23,11 +23,17 @@ router.get('/', function (req, res) {
 
 // Post mensaje
 router.post('/', function (req, res) {
-  
-  const mensaje = {
-    mensaje: req.body.mensaje,
-    user: req.body.user
-  };
+    const mensaje = {
+        mensaje: req.body.mensaje,
+        user: req.body.user
+    };
+    
+    if(!validMessage(mensaje)){
+        return res.status(400).json({
+            ok: false,
+            error: "Mensaje o usuario vacíos" 
+        })
+    }
 
   mensajes.push( mensaje );
 
@@ -40,6 +46,9 @@ router.post('/', function (req, res) {
   });
 });
 
+function validMessage(mensaje){
+    return Boolean(mensaje?.mensaje?.trim() && mensaje?.user?.trim());
+}
 
 
 module.exports = router;
