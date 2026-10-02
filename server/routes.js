@@ -22,8 +22,6 @@ function getNextId(){
   return String(maxId + 1);
 }
 
-
-
 // Get mensajes
 router.get('/', function (req, res) {
   // res.json('Obteniendo mensajes');
@@ -35,6 +33,7 @@ router.get('/', function (req, res) {
 router.post('/', function (req, res) {
   
   const mensaje = {
+    _id: getNextId(),
     mensaje: req.body.mensaje,
     user: req.body.user
   };
