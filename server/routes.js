@@ -1,77 +1,62 @@
 // Routes.js - Módulo de rutas
 var express = require("express");
 var router = express.Router();
-
-const mensajes = [
-  {
-    _id: '1',
-    user: 'spiderman',
-    mensaje: 'Hola Mundo'
-  }
-
-];
-
-function getNextId(){
-  if(mensajes.length === 0) return '1';
-  const ids = mensajes 
-  .map(m => parseInt(m._id, 10))
-  .filter(id => !isNaN(id));
-  const maxId = ids.length > 0 ? Math.max(...ids) : 0;
-  return String(maxId + 1);
-}
+const mongoose = require('mongoose');
+const Mensaje = require('./models/mensaje');
 
 // Get mensajes
-router.get("/", function (req, res) {
-  // res.json('Obteniendo mensajes');
+router.get("/", async function (req, res) {
+  const mensajes = await Mensaje.find();
   res.json(mensajes);
 });
 
 // Post mensaje
-router.post('/', function (req, res) {
-    const mensaje = {
-        _id: getNextId(),
-        mensaje: req.body.mensaje,
-        user: req.body.user
-    };
-    
-    if(!validMessage(mensaje)){
+router.post('/', async function (req, res) {
+    const user = req.body?.user;
+    const texto = req.body?.mensaje;
+
+    if (typeof user !== 'string' || typeof texto !== 'string' ||
+        !user.trim() || !texto.trim()) {
         return res.status(400).json({
             ok: false,
-            error: "Mensaje o usuario vacíos" 
-        })
+            error: "Mensaje o usuario vacíos"
+        });
     }
 
-  mensajes.push(mensaje);
+    const mensaje = await Mensaje.create({
+        user: user.trim(),
+        mensaje: texto.trim()
+    });
 
-  console.log(mensajes);
-
-  res.json({
-    ok: true,
-    mensaje,
-  });
+    res.status(201).json({
+        ok: true,
+        mensaje
+    });
 });
 
-router.delete("/:id", function (req, res) {
+router.delete("/:id", async function (req, res) {
   const id = req.params.id;
-  const index = mensajes.findIndex((m) => m._id === id);
 
-  if (index === -1) {
+  if (!mongoose.isObjectIdOrHexString(id)) {
+    return res.status(400).json({
+      ok: false,
+      error: "Id de mensaje inválido"
+    });
+  }
+
+  const eliminado = await Mensaje.findByIdAndDelete(id);
+  if (!eliminado) {
     return res.status(404).json({
       ok: false,
       error: `No existe un mensaje con el id ${id}`,
     });
   }
-  const [eliminado] = mensajes.splice(index, 1);
 
   res.json({
     ok: true,
     mensaje: eliminado,
   });
 });
-
-function validMessage(mensaje){
-    return Boolean(mensaje?.mensaje?.trim() && mensaje?.user?.trim());
-}
 
 
 module.exports = router;
