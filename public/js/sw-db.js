@@ -12,7 +12,6 @@ function guardarMensaje( mensaje ) {
         self.registration.sync.register('nuevo-post');
 
         const newResp = { ok: true, offline: true };
-        throw new Error("Algo salió mal");
         return new Response( JSON.stringify(newResp) );
 
     }).catch(err=>{
