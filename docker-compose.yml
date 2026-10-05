@@ -1,0 +1,14 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: chatoffline
+    ports:
+      - "27018:27018"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: chat2026
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
