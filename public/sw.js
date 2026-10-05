@@ -1,11 +1,8 @@
-// imports
-importScripts('https://cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js')
-
 importScripts('js/sw-db.js');
 importScripts('js/sw-utils.js');
 
 
-const STATIC_CACHE    = 'static-v3';
+const STATIC_CACHE    = 'static-v4';
 const DYNAMIC_CACHE   = 'dynamic-v1';
 const INMUTABLE_CACHE = 'inmutable-v1';
 
@@ -21,6 +18,7 @@ const APP_SHELL = [
     'img/avatars/thor.jpg',
     'img/avatars/wolverine.jpg',
     'js/app.js',
+    'js/sw-db.js',
     'js/sw-utils.js',
     'js/libs/plugins/mdtoast.min.js',
     'js/libs/plugins/mdtoast.min.css'
@@ -31,8 +29,7 @@ const APP_SHELL_INMUTABLE = [
     'https://fonts.googleapis.com/css?family=Lato:400,300',
     'https://use.fontawesome.com/releases/v5.3.1/css/all.css',
     'https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js',
-    'https://cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js'
+    'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'
 ];
 
 
@@ -48,7 +45,7 @@ self.addEventListener('install', e => {
 
 
 
-    e.waitUntil( Promise.all([ cacheStatic, cacheInmutable ])  );
+    e.waitUntil( Promise.all([ cacheStatic, cacheInmutable, inicializarBaseDeDatos() ])  );
 
 });
 

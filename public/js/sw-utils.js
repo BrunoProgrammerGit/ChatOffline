@@ -26,18 +26,10 @@ function actualizaCacheStatico(staticCache, req, APP_SHELL_INMUTABLE) {
 
 // Network with cache fallback / update
 function manejoApiMensajes(cacheName, req) {
-  if (req.clone().method === "POST") {
-    if (self.registration.sync) {
-      return req
-        .clone()
-        .text()
-        .then((body) => {
-          const bodyObj = JSON.parse(body);
-          return guardarMensaje(bodyObj);
-        });
-    } else {
-      return fetch(req);
-    }
+  if (req.method === "POST") {
+    return fetch(req.clone()).catch(() => {
+      return req.clone().json().then(guardarMensaje);
+    });
   } else if (req.method !== "GET") {
     return fetch(req);
   } else {
