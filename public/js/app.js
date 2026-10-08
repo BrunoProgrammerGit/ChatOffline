@@ -181,7 +181,28 @@ function getMensajes() {
 getMensajes();
 
 
+function isOnline() {
 
+    if ( navigator.onLine ) {
+        // tenemos conexión
+        // console.log('online');
+        $.mdtoast('Online', {
+            interaction: true,
+            interactionTimeout: 1000,
+            actionText: 'OK!'
+        });
+
+
+    } else{
+        // No tenemos conexión
+        $.mdtoast('Offline', {
+            interaction: true,
+            actionText: 'OK',
+            type: 'warning'
+        });
+    }
+
+}
 
 
 // Notificar cambios de conexión y resultados de la sincronización
