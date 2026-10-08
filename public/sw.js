@@ -115,10 +115,6 @@ function notificarClientes(tipo) {
 self.addEventListener('sync', e => {
     console.log('SW: Sync');
     if ( e.tag === 'nuevo-post' ) {
-<<<<<<< HEAD
-        const respuesta = postearMensajes();
-
-=======
 
         // postear a BD cuando hay conexión
         const respuesta = postearMensajes().then(
@@ -128,7 +124,6 @@ self.addEventListener('sync', e => {
             })
         );
         
->>>>>>> 263886825a987161fa644edae30bc26b9e9a8898
         e.waitUntil( respuesta );
     }
 
