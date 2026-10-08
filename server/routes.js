@@ -5,9 +5,31 @@ const mongoose = require('mongoose');
 const Mensaje = require('./models/mensaje');
 
 // Get mensajes
+// Get mensajes
 router.get("/", async function (req, res) {
-  const mensajes = await Mensaje.find();
-  res.json(mensajes);
+    try {
+        const mensajes = await Mensaje.find().sort({ _id: 1 });
+
+        return res.status(200).json({
+            ok: true,
+            mensajes
+        });
+
+    } catch (err) {
+        console.error('No se pudieron leer los mensajes:', err);
+
+        const connectionError = mongoose.connection.readyState !== 1 ||
+            /MongooseServerSelectionError|MongoNetworkError|MongoNetworkTimeoutError|MongoTimeoutError/.test(err.name) ||
+            ['ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET'].includes(err.code);
+
+        return res.status(connectionError ? 503 : 500).json({
+            ok: false,
+            errorType: connectionError ? 'connection' : 'database',
+            error: connectionError
+                ? 'No hay conexión con la base de datos'
+                : 'No se pudieron leer los mensajes de la base de datos'
+        });
+    }
 });
 
 // Post mensaje
