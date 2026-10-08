@@ -113,6 +113,13 @@ self.addEventListener( 'fetch', e => {
 
 
 // tareas asíncronas
+function notificarClientes(tipo) {
+    return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientes => {
+            clientes.forEach(cliente => cliente.postMessage({ tipo }));
+        });
+}
+
 self.addEventListener('sync', e => {
 
     console.log('SW: Sync');
@@ -120,7 +127,12 @@ self.addEventListener('sync', e => {
     if ( e.tag === 'nuevo-post' ) {
 
         // postear a BD cuando hay conexión
-        const respuesta = postearMensajes();
+        const respuesta = postearMensajes().then(
+            () => notificarClientes('sincronizacion-exitosa'),
+            error => notificarClientes('sincronizacion-fallida').then(() => {
+                throw error;
+            })
+        );
         
         e.waitUntil( respuesta );
     }

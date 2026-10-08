@@ -184,34 +184,32 @@ getMensajes();
 
 
 
-// Detectar cambios de conexión
-function isOnline() {
+// Notificar cambios de conexión y resultados de la sincronización
+window.addEventListener('online', () => {
+    $.mdtoast('Se restableció la conexión.', {
+        type: 'success'
+    });
+});
 
-    if ( navigator.onLine ) {
-        // tenemos conexión
-        // console.log('online');
-        $.mdtoast('Online', {
-            interaction: true,
-            interactionTimeout: 1000,
-            actionText: 'OK!'
-        });
+window.addEventListener('offline', () => {
+    $.mdtoast('Se perdió la conexión.', {
+        type: 'warning'
+    });
+});
 
-
-    } else{
-        // No tenemos conexión
-        $.mdtoast('Offline', {
-            interaction: true,
-            actionText: 'OK',
-            type: 'warning'
-        });
-    }
-
+if ( navigator.serviceWorker ) {
+    navigator.serviceWorker.addEventListener('message', event => {
+        if ( event.data && event.data.tipo === 'sincronizacion-exitosa' ) {
+            $.mdtoast('Los registros se sincronizaron correctamente.', {
+                type: 'success'
+            });
+        } else if ( event.data && event.data.tipo === 'sincronizacion-fallida' ) {
+            $.mdtoast('No se pudieron sincronizar los registros.', {
+                type: 'error'
+            });
+        }
+    });
 }
-
-window.addEventListener('online', isOnline );
-window.addEventListener('offline', isOnline );
-
-isOnline();
 
 // Enviar un nuevo mensaje por POST (equivale a la petición de Postman)
 function enviarNuevoMensaje( user, mensaje ) {
