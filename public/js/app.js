@@ -203,9 +203,6 @@ function isOnline() {
 
 }
 
-
-isOnline();
-
 // Notificar cambios de conexión y resultados de la sincronización
 window.addEventListener('online', () => isOnline());
 window.addEventListener('offline', () => isOnline());
