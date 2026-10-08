@@ -191,8 +191,7 @@ function isOnline() {
             interactionTimeout: 1000,
             actionText: 'OK!'
         });
-
-
+        pedirSincronizacion();
     } else{
         // No tenemos conexión
         $.mdtoast('Offline', {
@@ -206,17 +205,8 @@ function isOnline() {
 
 
 // Notificar cambios de conexión y resultados de la sincronización
-window.addEventListener('online', () => {
-    $.mdtoast('Se restableció la conexión.', {
-        type: 'success'
-    });
-});
-
-window.addEventListener('offline', () => {
-    $.mdtoast('Se perdió la conexión.', {
-        type: 'warning'
-    });
-});
+window.addEventListener('online', () => isOnline());
+window.addEventListener('offline', () => isOnline());
 
 if ( navigator.serviceWorker ) {
     navigator.serviceWorker.addEventListener('message', event => {
@@ -281,10 +271,4 @@ function pedirSincronizacion() {
     });
 }
 
-// Cuando vuelve internet
-window.addEventListener('online', pedirSincronizacion);
-
-// Por si había pendientes de una sesión anterior
-if ( navigator.onLine ) {
-    pedirSincronizacion();
-}
+isOnline();
