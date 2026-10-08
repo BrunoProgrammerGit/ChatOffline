@@ -12,26 +12,39 @@ router.get("/", async function (req, res) {
 
 // Post mensaje
 router.post('/', async function (req, res) {
-    const user = req.body?.user;
-    const texto = req.body?.mensaje;
+    try {
+        const user = req.body?.user;
+        const texto = req.body?.mensaje;
 
-    if (typeof user !== 'string' || typeof texto !== 'string' ||
-        !user.trim() || !texto.trim()) {
-        return res.status(400).json({
+        if (typeof user !== 'string' || typeof texto !== 'string' ||
+            !user.trim() || !texto.trim()) {
+            return res.status(400).json({
+                ok: false,
+                errorType: 'validation',
+                error: "Mensaje o usuario vacíos"
+            });
+        }
+
+        const mensaje = await Mensaje.create(req.body);
+        return res.status(200).json({
+            ok: true,
+            mensaje
+        });
+    } catch (err) {
+        console.error('No se pudo guardar el mensaje:', err);
+
+        const connectionError = mongoose.connection.readyState !== 1 ||
+            /MongooseServerSelectionError|MongoNetworkError|MongoNetworkTimeoutError|MongoTimeoutError/.test(err.name) ||
+            ['ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET'].includes(err.code);
+
+        return res.status(connectionError ? 503 : 500).json({
             ok: false,
-            error: "Mensaje o usuario vacíos"
+            errorType: connectionError ? 'connection' : 'database',
+            error: connectionError
+                ? 'No hay conexión con la base de datos'
+                : 'No se pudo guardar el mensaje en la base de datos'
         });
     }
-
-    const mensaje = await Mensaje.create({
-        user: user.trim(),
-        mensaje: texto.trim()
-    });
-
-    res.status(201).json({
-        ok: true,
-        mensaje
-    });
 });
 
 router.delete("/:id", async function (req, res) {

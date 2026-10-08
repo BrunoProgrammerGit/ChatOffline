@@ -27,9 +27,26 @@ function actualizaCacheStatico(staticCache, req, APP_SHELL_INMUTABLE) {
 // Network with cache fallback / update
 function manejoApiMensajes(cacheName, req) {
   if (req.method === "POST") {
-    return fetch(req.clone()).catch(() => {
-      return req.clone().json().then(guardarMensaje);
-    });
+    const guardarPendiente = () => req.clone().json().then(guardarMensaje);
+
+    return fetch(req.clone()).then(
+      (res) => {
+        if (!res.ok) {
+          return guardarPendiente();
+        }
+
+        return res
+          .clone()
+          .json()
+          .then(
+            (body) => {
+              return body && body.ok === false ? guardarPendiente() : res;
+            },
+            () => res,
+          );
+      },
+      () => guardarPendiente(),
+    );
   } else if (req.method !== "GET") {
     return fetch(req);
   } else {
