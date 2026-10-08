@@ -35,6 +35,7 @@ const APP_SHELL_INMUTABLE = [
 
 
 self.addEventListener('install', e => {
+
     const cacheStatic = caches.open( STATIC_CACHE ).then(cache =>
         cache.addAll( APP_SHELL ));
 
@@ -104,7 +105,8 @@ self.addEventListener( 'fetch', e => {
 });
 
 
-// tareas asíncronas
+// ---------- Sincronización de mensajes pendientes ----------
+
 function notificarClientes(tipo) {
     return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
         .then(clientes => {
@@ -112,18 +114,38 @@ function notificarClientes(tipo) {
         });
 }
 
+// Evento de Background Sync (cuando el navegador lo permite)
 self.addEventListener('sync', e => {
+
     console.log('SW: Sync');
+
     if ( e.tag === 'nuevo-post' ) {
 
-        // postear a BD cuando hay conexión
         const respuesta = postearMensajes().then(
-            () => notificarClientes('sincronizacion-exitosa'),
+            enviados => enviados > 0 ? notificarClientes('sincronizacion-exitosa') : undefined,
             error => notificarClientes('sincronizacion-fallida').then(() => {
+                // relanzamos el error para que el navegador reintente el sync
                 throw error;
             })
         );
-        
+
+        e.waitUntil( respuesta );
+    }
+
+});
+
+self.addEventListener('message', e => {
+
+    if ( e.data && e.data.tipo === 'sincronizar' ) {
+
+        const respuesta = postearMensajes().then(
+            enviados => enviados > 0 ? notificarClientes('sincronizacion-exitosa') : undefined,
+            error => {
+                console.error('SW: falló la sincronización manual:', error);
+                return notificarClientes('sincronizacion-fallida');
+            }
+        );
+
         e.waitUntil( respuesta );
     }
 
