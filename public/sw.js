@@ -105,11 +105,30 @@ self.addEventListener( 'fetch', e => {
 
 
 // tareas asíncronas
+function notificarClientes(tipo) {
+    return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientes => {
+            clientes.forEach(cliente => cliente.postMessage({ tipo }));
+        });
+}
+
 self.addEventListener('sync', e => {
     console.log('SW: Sync');
     if ( e.tag === 'nuevo-post' ) {
+<<<<<<< HEAD
         const respuesta = postearMensajes();
 
+=======
+
+        // postear a BD cuando hay conexión
+        const respuesta = postearMensajes().then(
+            () => notificarClientes('sincronizacion-exitosa'),
+            error => notificarClientes('sincronizacion-fallida').then(() => {
+                throw error;
+            })
+        );
+        
+>>>>>>> 263886825a987161fa644edae30bc26b9e9a8898
         e.waitUntil( respuesta );
     }
 
