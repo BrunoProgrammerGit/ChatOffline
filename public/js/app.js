@@ -3,15 +3,15 @@ var url = window.location.href;
 var swLocation = '/sw.js';
 
 
-if ( navigator.serviceWorker ) {
+if (navigator.serviceWorker) {
 
 
-    if ( url.includes('localhost') ) {
+    if (url.includes('localhost')) {
         swLocation = '/sw.js';
     }
 
 
-    navigator.serviceWorker.register( swLocation );
+    navigator.serviceWorker.register(swLocation);
 }
 
 
@@ -20,18 +20,18 @@ if ( navigator.serviceWorker ) {
 
 // Referencias de jQuery
 
-var titulo      = $('#titulo');
-var nuevoBtn    = $('#nuevo-btn');
-var salirBtn    = $('#salir-btn');
+var titulo = $('#titulo');
+var nuevoBtn = $('#nuevo-btn');
+var salirBtn = $('#salir-btn');
 var cancelarBtn = $('#cancel-btn');
-var postBtn     = $('#post-btn');
-var avatarSel   = $('#seleccion');
-var timeline    = $('#timeline');
+var postBtn = $('#post-btn');
+var avatarSel = $('#seleccion');
+var timeline = $('#timeline');
 
-var modal       = $('#modal');
+var modal = $('#modal');
 var modalAvatar = $('#modal-avatar');
-var avatarBtns  = $('.seleccion-avatar');
-var txtMensaje  = $('#txtMensaje');
+var avatarBtns = $('.seleccion-avatar');
+var txtMensaje = $('#txtMensaje');
 
 // El usuario, contiene el ID del hÃ©roe seleccionado
 var usuario;
@@ -46,13 +46,13 @@ function crearMensajeHTML(mensaje, personaje) {
     var content =`
     <li class="animated fadeIn fast">
         <div class="avatar">
-            <img src="img/avatars/${ personaje }.jpg">
+            <img src="img/avatars/${personaje }.jpg">
         </div>
         <div class="bubble-container">
             <div class="bubble">
-                <h3>@${ personaje }</h3>
+                <h3>@${personaje }</h3>
                 <br/>
-                ${ mensaje }
+                ${mensaje }
             </div>
             
             <div class="arrow"></div>
@@ -68,9 +68,9 @@ function crearMensajeHTML(mensaje, personaje) {
 
 
 // Globals
-function logIn( ingreso ) {
+function logIn(ingreso) {
 
-    if ( ingreso ) {
+    if (ingreso) {
         nuevoBtn.removeClass('oculto');
         salirBtn.removeClass('oculto');
         timeline.removeClass('oculto');
@@ -83,14 +83,14 @@ function logIn( ingreso ) {
         avatarSel.removeClass('oculto');
 
         titulo.text('Seleccione Personaje');
-    
+
     }
 
 }
 
 
 // Seleccion de personaje
-avatarBtns.on('click', function() {
+avatarBtns.on('click', function () {
 
     usuario = $(this).data('user');
 
@@ -101,42 +101,42 @@ avatarBtns.on('click', function() {
 });
 
 // Boton de salir
-salirBtn.on('click', function() {
+salirBtn.on('click', function () {
 
     logIn(false);
 
 });
 
 // Boton de nuevo mensaje
-nuevoBtn.on('click', function() {
+nuevoBtn.on('click', function () {
 
     modal.removeClass('oculto');
-    modal.animate({ 
+    modal.animate({
         marginTop: '-=1000px',
         opacity: 1
-    }, 200 );
+    }, 200);
 
 });
 
 
 // Boton de cancelar mensaje
-cancelarBtn.on('click', function() {
-    if ( !modal.hasClass('oculto') ) {
-        modal.animate({ 
+cancelarBtn.on('click', function () {
+    if (!modal.hasClass('oculto')) {
+        modal.animate({
             marginTop: '+=1000px',
             opacity: 0
-         }, 200, function() {
-             modal.addClass('oculto');
-             txtMensaje.val('');
-         });
+        }, 200, function () {
+            modal.addClass('oculto');
+            txtMensaje.val('');
+        });
     }
 });
 
 // Boton de enviar mensaje
-postBtn.on('click', function() {
+postBtn.on('click', function () {
 
     var mensaje = txtMensaje.val();
-    if ( mensaje.length === 0 ) {
+    if (mensaje.length === 0) {
         cancelarBtn.click();
         return;
     }
@@ -152,12 +152,12 @@ postBtn.on('click', function() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify( data )
+        body: JSON.stringify(data)
     })
-    .then( res => res.json() )
-    .then( res => console.log( 'app.js', res ))
-    .catch( err => console.log( 'app.js error:', err ));
-    crearMensajeHTML( mensaje, usuario );
+        .then(res => res.json())
+        .then(res => console.log('app.js', res))
+        .catch(err => console.log('app.js error:', err));
+    crearMensajeHTML(mensaje, usuario);
 
 });
 
@@ -167,11 +167,11 @@ postBtn.on('click', function() {
 function getMensajes() {
 
     fetch('api')
-        .then( res => res.json() )
-        .then( posts => {
+        .then(res => res.json())
+        .then(posts => {
             console.log(posts);
-            posts.forEach( post =>
-                crearMensajeHTML( post.mensaje, post.user ));
+            posts.forEach(post =>
+                crearMensajeHTML(post.mensaje, post.user));
         }).catch(err => {
             alert("app.js No se pudieron leer los mensajes en el api");
         });
@@ -183,7 +183,7 @@ getMensajes();
 
 function isOnline() {
 
-    if ( navigator.onLine ) {
+    if (navigator.onLine) {
         // tenemos conexión
         // console.log('online');
         $.mdtoast('Online', {
@@ -192,7 +192,7 @@ function isOnline() {
             actionText: 'OK!'
         });
         pedirSincronizacion();
-    } else{
+    } else {
         // No tenemos conexión
         $.mdtoast('Offline', {
             interaction: true,
@@ -207,13 +207,13 @@ function isOnline() {
 window.addEventListener('online', () => isOnline());
 window.addEventListener('offline', () => isOnline());
 
-if ( navigator.serviceWorker ) {
+if (navigator.serviceWorker) {
     navigator.serviceWorker.addEventListener('message', event => {
-        if ( event.data && event.data.tipo === 'sincronizacion-exitosa' ) {
+        if (event.data && event.data.tipo === 'sincronizacion-exitosa') {
             $.mdtoast('Los registros se sincronizaron correctamente.', {
                 type: 'success'
             });
-        } else if ( event.data && event.data.tipo === 'sincronizacion-fallida' ) {
+        } else if (event.data && event.data.tipo === 'sincronizacion-fallida') {
             $.mdtoast('No se pudieron sincronizar los registros.', {
                 type: 'error'
             });
@@ -222,9 +222,9 @@ if ( navigator.serviceWorker ) {
 }
 
 // Enviar un nuevo mensaje por POST (equivale a la petición de Postman)
-function enviarNuevoMensaje( user, mensaje ) {
+function enviarNuevoMensaje(user, mensaje) {
 
-    if ( !user || !mensaje ) {
+    if (!user || !mensaje) {
         console.warn('enviarNuevoMensaje: user y mensaje son obligatorios');
         return Promise.resolve({ ok: false });
     }
@@ -239,35 +239,60 @@ function enviarNuevoMensaje( user, mensaje ) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify( data )
+        body: JSON.stringify(data)
     })
-    .then( res => res.json() )
-    .then( res => {
+        .then(res => res.json())
+        .then(res => {
 
-        console.log( 'enviarNuevoMensaje:', res );
+            console.log('enviarNuevoMensaje:', res);
 
-        if ( res.ok ) {
-            // Con el SW la respuesta es { ok: true, offline: true } y no trae
-            // el mensaje, así que se pinta con los datos enviados.
-            // Si el SW no interviene, el servidor sí devuelve res.mensaje.
-            var m = res.mensaje || data;
-            crearMensajeHTML( m.mensaje, m.user );
-        }
+            if (res.ok) {
+                // Con el SW la respuesta es { ok: true, offline: true } y no trae
+                // el mensaje, así que se pinta con los datos enviados.
+                // Si el SW no interviene, el servidor sí devuelve res.mensaje.
+                var m = res.mensaje || data;
+                crearMensajeHTML(m.mensaje, m.user);
+            }
 
-        return res;
-    })
-    .catch( err => console.log( 'enviarNuevoMensaje error:', err ));
+            return res;
+        })
+        .catch(err => console.log('enviarNuevoMensaje error:', err));
 
 }
 
 function pedirSincronizacion() {
-    if ( !('serviceWorker' in navigator) ) return;
+    if (!('serviceWorker' in navigator)) return;
 
-    navigator.serviceWorker.ready.then( reg => {
-        if ( reg.active ) {
+    navigator.serviceWorker.ready.then(reg => {
+        if (reg.active) {
             reg.active.postMessage({ tipo: 'sincronizar' });
         }
     });
 }
 
+
+self.addEventListener('message', e => {
+
+    if (e.data && e.data.tipo === 'sincronizar') {
+
+        const respuesta = postearMensajes().then(
+            enviados => {
+                if (enviados > 0) {
+                    return refrescarCacheApi()
+                        .then(() => notificarClientes('sincronizacion-exitosa'));
+                }
+                return undefined;
+            },
+            error => {
+                console.error('SW: falló la sincronización manual:', error);
+                return notificarClientes('sincronizacion-fallida');
+            }
+        );
+
+        e.waitUntil(respuesta);
+    }
+
+});
+
 isOnline();
+

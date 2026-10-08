@@ -2,8 +2,8 @@ importScripts('js/sw-db.js');
 importScripts('js/sw-utils.js');
 
 
-const STATIC_CACHE    = 'static-v5';
-const DYNAMIC_CACHE   = 'dynamic-v1';
+const STATIC_CACHE = 'static-v5';
+const DYNAMIC_CACHE = 'dynamic-v1';
 const INMUTABLE_CACHE = 'inmutable-v1';
 
 
@@ -36,38 +36,38 @@ const APP_SHELL_INMUTABLE = [
 
 self.addEventListener('install', e => {
 
-    const cacheStatic = caches.open( STATIC_CACHE ).then(cache =>
-        cache.addAll( APP_SHELL ));
+    const cacheStatic = caches.open(STATIC_CACHE).then(cache =>
+        cache.addAll(APP_SHELL));
 
-    const cacheInmutable = caches.open( INMUTABLE_CACHE ).then(cache =>
+    const cacheInmutable = caches.open(INMUTABLE_CACHE).then(cache =>
         Promise.all(
-            APP_SHELL_INMUTABLE.map( url =>
+            APP_SHELL_INMUTABLE.map(url =>
                 // no-cors evita el bloqueo por CORS (respuesta opaque)
-                fetch( url, { mode: 'no-cors' } )
+                fetch(url, { mode: 'no-cors' })
                     // cache.put sí acepta respuestas opaque (cache.add no)
-                    .then( res => cache.put( url, res ) )
+                    .then(res => cache.put(url, res))
                     // si un CDN falla, no tumba la instalación del SW
-                    .catch( err => console.warn('No se pudo cachear:', url, err) )
+                    .catch(err => console.warn('No se pudo cachear:', url, err))
             )
         )
     );
 
-    e.waitUntil( Promise.all([ cacheStatic, cacheInmutable, inicializarBaseDeDatos() ]) );
+    e.waitUntil(Promise.all([cacheStatic, cacheInmutable, inicializarBaseDeDatos()]));
 
 });
 
 
 self.addEventListener('activate', e => {
 
-    const respuesta = caches.keys().then( keys =>
+    const respuesta = caches.keys().then(keys =>
         Promise.all(
-            keys.map( key => {
+            keys.map(key => {
 
-                if ( key !== STATIC_CACHE && key.includes('static') ) {
+                if (key !== STATIC_CACHE && key.includes('static')) {
                     return caches.delete(key);
                 }
 
-                if ( key !== DYNAMIC_CACHE && key.includes('dynamic') ) {
+                if (key !== DYNAMIC_CACHE && key.includes('dynamic')) {
                     return caches.delete(key);
                 }
 
@@ -75,32 +75,32 @@ self.addEventListener('activate', e => {
         )
     );
 
-    e.waitUntil( respuesta );
+    e.waitUntil(respuesta);
 
 });
 
 
 
-self.addEventListener( 'fetch', e => {
+self.addEventListener('fetch', e => {
     let respuesta;
 
-    if ( e.request.url.includes('/api') ) {
-        respuesta = manejoApiMensajes( DYNAMIC_CACHE, e.request );
+    if (e.request.url.includes('/api')) {
+        respuesta = manejoApiMensajes(DYNAMIC_CACHE, e.request);
     } else {
-        respuesta = caches.match( e.request ).then( res => {
-            if ( res ) {
-                actualizaCacheStatico( STATIC_CACHE, e.request, APP_SHELL_INMUTABLE );
+        respuesta = caches.match(e.request).then(res => {
+            if (res) {
+                actualizaCacheStatico(STATIC_CACHE, e.request, APP_SHELL_INMUTABLE);
                 return res;
             } else {
-                return fetch( e.request ).then( newRes => {
-                    return actualizaCacheDinamico( DYNAMIC_CACHE, e.request, newRes );
+                return fetch(e.request).then(newRes => {
+                    return actualizaCacheDinamico(DYNAMIC_CACHE, e.request, newRes);
                 });
             }
         });
 
     }
 
-    e.respondWith( respuesta );
+    e.respondWith(respuesta);
 
 });
 
@@ -114,29 +114,32 @@ function notificarClientes(tipo) {
         });
 }
 
-// Evento de Background Sync (cuando el navegador lo permite)
 self.addEventListener('sync', e => {
 
     console.log('SW: Sync');
 
-    if ( e.tag === 'nuevo-post' ) {
+    if (e.tag === 'nuevo-post') {
 
         const respuesta = postearMensajes().then(
-            enviados => enviados > 0 ? notificarClientes('sincronizacion-exitosa') : undefined,
+            enviados => {
+                if (enviados > 0) {
+                    return refrescarCacheApi()
+                        .then(() => notificarClientes('sincronizacion-exitosa'));
+                }
+                return undefined;
+            },
             error => notificarClientes('sincronizacion-fallida').then(() => {
-                // relanzamos el error para que el navegador reintente el sync
                 throw error;
             })
         );
 
-        e.waitUntil( respuesta );
+        e.waitUntil(respuesta);
     }
 
 });
-
 self.addEventListener('message', e => {
 
-    if ( e.data && e.data.tipo === 'sincronizar' ) {
+    if (e.data && e.data.tipo === 'sincronizar') {
 
         const respuesta = postearMensajes().then(
             enviados => enviados > 0 ? notificarClientes('sincronizacion-exitosa') : undefined,
@@ -146,7 +149,7 @@ self.addEventListener('message', e => {
             }
         );
 
-        e.waitUntil( respuesta );
+        e.waitUntil(respuesta);
     }
 
 });
@@ -155,25 +158,25 @@ function refrescarCacheApi() {
 
     const apiUrl = new URL('api', self.location).href;
 
-    return caches.open( DYNAMIC_CACHE )
-        .then( cache => {
-            return cache.delete( apiUrl )
-                .then( () => {
-                    return fetch( apiUrl, { mode: 'no-cors' } )
-                        .then( res => {
-                            if ( res && ( res.ok || res.type === 'opaque' ) ) {
-                                return cache.put( apiUrl, res );
+    return caches.open(DYNAMIC_CACHE)
+        .then(cache => {
+            return cache.delete(apiUrl)
+                .then(() => {
+                    return fetch(apiUrl, { mode: 'no-cors' })
+                        .then(res => {
+                            if (res && (res.ok || res.type === 'opaque')) {
+                                return cache.put(apiUrl, res);
                             }
 
                             console.warn('SW: respuesta de /api no cacheable', res && res.status);
                         })
-                        .catch( err => {
+                        .catch(err => {
                             console.warn('SW: no se pudo refrescar /api en caché', err);
                         });
 
                 });
 
         })
-        .catch( err => console.warn('SW: error refrescando caché de /api', err) );
+        .catch(err => console.warn('SW: error refrescando caché de /api', err));
 
 }
