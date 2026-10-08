@@ -269,4 +269,22 @@ function enviarNuevoMensaje( user, mensaje ) {
     })
     .catch( err => console.log( 'enviarNuevoMensaje error:', err ));
 
-}   
+}
+
+function pedirSincronizacion() {
+    if ( !('serviceWorker' in navigator) ) return;
+
+    navigator.serviceWorker.ready.then( reg => {
+        if ( reg.active ) {
+            reg.active.postMessage({ tipo: 'sincronizar' });
+        }
+    });
+}
+
+// Cuando vuelve internet
+window.addEventListener('online', pedirSincronizacion);
+
+// Por si había pendientes de una sesión anterior
+if ( navigator.onLine ) {
+    pedirSincronizacion();
+}
