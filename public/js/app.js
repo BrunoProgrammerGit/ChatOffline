@@ -145,14 +145,14 @@ function getMensajes() {
 
     fetch('api')
         .then( res => res.json() )
-        .then( posts => {
+        .then( res => {
+            var posts = res.mensajes || res;
             console.log(posts);
             posts.forEach( post =>
                 crearMensajeHTML( post.mensaje, post.user ));
         }).catch(err => {
             alert("app.js No se pudieron leer los mensajes en el api");
         });
-
 
 }
 getMensajes();
@@ -255,3 +255,4 @@ estabaOnline = navigator.onLine;
 if ( estabaOnline ) {
     pedirSincronizacion();
 }
+

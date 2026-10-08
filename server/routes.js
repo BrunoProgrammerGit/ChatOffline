@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const Mensaje = require('./models/mensaje');
 
 // Get mensajes
-// Get mensajes
 router.get("/", async function (req, res) {
     try {
         const mensajes = await Mensaje.find().sort({ _id: 1 });
