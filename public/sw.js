@@ -150,3 +150,30 @@ self.addEventListener('message', e => {
     }
 
 });
+
+function refrescarCacheApi() {
+
+    const apiUrl = new URL('api', self.location).href;
+
+    return caches.open( DYNAMIC_CACHE )
+        .then( cache => {
+            return cache.delete( apiUrl )
+                .then( () => {
+                    return fetch( apiUrl, { mode: 'no-cors' } )
+                        .then( res => {
+                            if ( res && ( res.ok || res.type === 'opaque' ) ) {
+                                return cache.put( apiUrl, res );
+                            }
+
+                            console.warn('SW: respuesta de /api no cacheable', res && res.status);
+                        })
+                        .catch( err => {
+                            console.warn('SW: no se pudo refrescar /api en caché', err);
+                        });
+
+                });
+
+        })
+        .catch( err => console.warn('SW: error refrescando caché de /api', err) );
+
+}
