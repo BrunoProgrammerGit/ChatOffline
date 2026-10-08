@@ -205,6 +205,8 @@ function isOnline() {
 }
 
 
+isOnline();
+
 // Notificar cambios de conexión y resultados de la sincronización
 window.addEventListener('online', () => {
     $.mdtoast('Se restableció la conexión.', {
