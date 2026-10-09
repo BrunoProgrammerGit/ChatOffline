@@ -61,21 +61,10 @@ function manejoApiMensajes(cacheName, req) {
         if (res.ok) {
           actualizaCacheDinamico(cacheName, req, res.clone());
 
-          res
-            .clone()
-            .json()
-            .then((body) => {
-              const mensajes = Array.isArray(body)
-                ? body
-                : (body && body.mensajes) || [];
-              return guardarMensajesEnObjectStore(mensajes);
-            })
-            .catch((err) =>
-              console.warn(
-                "SW: no se pudo actualizar ObjectStore mensajes:",
-                err,
-              ),
-            );
+          res.clone().json().then(body => {
+            const mensajes = Array.isArray(body) ? body : (body && body.mensajes) || [];
+            return guardarMensajesEnObjectStore(mensajes);
+          }).catch(err => console.warn('SW: no se pudo actualizar ObjectStore mensajes:', err));
 
           return res.clone();
         } else {
