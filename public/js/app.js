@@ -124,7 +124,6 @@ postBtn.on('click', function () {
         user: usuario
     };
 
-
     fetch('api', {
         method: 'POST',
         headers: {
@@ -133,8 +132,18 @@ postBtn.on('click', function () {
         body: JSON.stringify(data)
     })
         .then(res => res.json())
-        .then(res => console.log('app.js', res))
-        .catch(err => console.log('app.js error:', err));
+        .then(res => {
+            console.log('app.js POST ok:', res);
+
+            if (res && res.ok === false && res.errorType === 'connection') {
+                guardarMensajeOffline(data);
+            }
+        })
+        .catch(err => {
+            console.log('app.js POST falló:', err.message);
+            guardarMensajeOffline(data);
+        });
+
     crearMensajeHTML(mensaje, usuario);
 
 });
@@ -256,5 +265,55 @@ function pedirSincronizacion() {
 estabaOnline = navigator.onLine;
 if (estabaOnline) {
     pedirSincronizacion();
+}
+
+function guardarMensajeOffline(data) {
+
+    var request = indexedDB.open('chat-offline-db', 2);
+
+    request.onupgradeneeded = function () {
+        var db = request.result;
+        if (!db.objectStoreNames.contains('mensajes-offline')) {
+            db.createObjectStore('mensajes-offline', { keyPath: '_id' });
+        }
+        if (!db.objectStoreNames.contains('mensajes')) {
+            db.createObjectStore('mensajes', { keyPath: '_id' });
+        }
+    };
+
+    request.onsuccess = function () {
+        var db = request.result;
+        var tx = db.transaction('mensajes-offline', 'readwrite');
+        var store = tx.objectStore('mensajes-offline');
+
+        var id = (self.crypto && self.crypto.randomUUID)
+            ? self.crypto.randomUUID()
+            : (Date.now() + '-' + Math.random().toString(16).slice(2));
+
+        store.add({
+            _id: id,
+            user: data.user,
+            mensaje: data.mensaje,
+            creado: new Date().toISOString()
+        });
+
+        tx.oncomplete = function () {
+            console.log('app.js: mensaje guardado en mensajes-offline');
+            db.close();
+
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ tipo: 'sincronizar' });
+            }
+        };
+
+        tx.onerror = function () {
+            console.error('app.js: error guardando offline:', tx.error);
+            db.close();
+        };
+    };
+
+    request.onerror = function () {
+        console.error('app.js: error abriendo IndexedDB:', request.error);
+    };
 }
 
