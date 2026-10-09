@@ -142,7 +142,13 @@ self.addEventListener('message', e => {
     if (e.data && e.data.tipo === 'sincronizar') {
 
         const respuesta = postearMensajes().then(
-            enviados => enviados > 0 ? notificarClientes('sincronizacion-exitosa') : undefined,
+            enviados => {
+                if (enviados > 0) {
+                    return refrescarCacheApi()
+                        .then(() => notificarClientes('sincronizacion-exitosa'));
+                }
+                return undefined;
+            },
             error => {
                 console.error('SW: falló la sincronización manual:', error);
                 return notificarClientes('sincronizacion-fallida');
@@ -157,26 +163,24 @@ self.addEventListener('message', e => {
 function refrescarCacheApi() {
 
     const apiUrl = new URL('api', self.location).href;
+    const req = new Request(apiUrl);
 
     return caches.open(DYNAMIC_CACHE)
         .then(cache => {
-            return cache.delete(apiUrl)
+            return cache.delete(req)
                 .then(() => {
-                    return fetch(apiUrl, { mode: 'no-cors' })
+                    return fetch(req)
                         .then(res => {
-                            if (res && (res.ok || res.type === 'opaque')) {
-                                return cache.put(apiUrl, res);
+                            if (res && res.ok) {
+                                return actualizaCacheDinamico(DYNAMIC_CACHE, req, res.clone());
                             }
-
                             console.warn('SW: respuesta de /api no cacheable', res && res.status);
                         })
                         .catch(err => {
-                            console.warn('SW: no se pudo refrescar /api en caché', err);
+                            console.warn('SW: no se pudo refrescar /api en caché', err.message);
                         });
-
                 });
-
         })
-        .catch(err => console.warn('SW: error refrescando caché de /api', err));
+        .catch(err => console.warn('SW: error refrescando caché de /api', err.message));
 
 }
