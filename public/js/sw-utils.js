@@ -1,9 +1,8 @@
-// Guardar  en el cache dinamico
+// Guardar en el cache dinamico
 function actualizaCacheDinamico(dynamicCache, req, res) {
   if (res.ok) {
     return caches.open(dynamicCache).then((cache) => {
       cache.put(req, res.clone());
-
       return res.clone();
     });
   } else {
@@ -15,9 +14,7 @@ function actualizaCacheDinamico(dynamicCache, req, res) {
 function actualizaCacheStatico(staticCache, req, APP_SHELL_INMUTABLE) {
   if (APP_SHELL_INMUTABLE.includes(req.url)) {
     // No hace falta actualizar el inmutable
-    // console.log('existe en inmutable', req.url );
   } else {
-    // console.log('actualizando', req.url );
     return fetch(req).then((res) => {
       return actualizaCacheDinamico(staticCache, req, res);
     });
@@ -26,7 +23,10 @@ function actualizaCacheStatico(staticCache, req, APP_SHELL_INMUTABLE) {
 
 // Network with cache fallback / update
 function manejoApiMensajes(cacheName, req) {
+
+  // ----- POST -----
   if (req.method === "POST") {
+
     const guardarPendiente = () => req.clone().json().then(guardarMensaje);
 
     return fetch(req.clone()).then(
@@ -47,9 +47,15 @@ function manejoApiMensajes(cacheName, req) {
       },
       () => guardarPendiente(),
     );
-  } else if (req.method !== "GET") {
+  }
+
+  // ----- Otros métodos que no son GET -----
+  else if (req.method !== "GET") {
     return fetch(req);
-  } else {
+  }
+
+  // ----- GET -----
+  else {
     return fetch(req)
       .then((res) => {
         if (res.ok) {
@@ -61,12 +67,12 @@ function manejoApiMensajes(cacheName, req) {
           }).catch(err => console.warn('SW: no se pudo actualizar ObjectStore mensajes:', err));
 
           return res.clone();
-      } else {
-        return caches.match(req);
-      }
+        } else {
+          return caches.match(req);
+        }
       })
-      .catch ((err) => {
-    return caches.match(req);
-  });
-}
+      .catch(() => {
+        return caches.match(req);
+      });
+  }
 }
